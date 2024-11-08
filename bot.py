@@ -9,19 +9,6 @@ from fotnt_string import Fonts
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-
-@app.route('/webhook', methods=['POST'])
-def webhook():
-    json_str = request.get_data().decode("UTF-8")
-    update = telebot.types.Update.de_json(json_str)
-    bot.process_new_updates([update])
-    return "OK", 200
-
-if __name__ == "__main__":
-    # For production use Gunicorn to serve the app
-    bot.remove_webhook()
-    bot.set_webhook(url="https://your-render-app-url.com/webhook")
-
 # Fetch the bot token from the environment variable
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
@@ -47,62 +34,104 @@ def send_welcome(message):
     
     # Delete the sticker message
     bot.delete_message(message.chat.id, sticker_message_id)
-    
-# Function to create the "Start" menu with buttons
+
+
+# Fetch the bot token from the environment 
+
+# Fetch the bot token and webhook URL from the environment variables
+BOT_TOKEN = os.getenv('BOT_TOKEN')
+WEBHOOK_URL = os.getenv('WEBHOOK_URL')
+
+# Check if webhook URL is available
+if not WEBHOOK_URL:
+    raise ValueError("Webhook URL is missing! Please set the WEBHOOK_URL environment variable.")
+
+# Set the webhook using the environment variable for the URL
+bot.set_webhook(url=WEBHOOK_URL)
+
+# /start command handler
 @bot.message_handler(commands=['start'])
-def start(message):
+def send_welcome(message):
+    # Step 1: Send an image with caption
+    photo_url = 'https://envs.sh/AfO.jpg'  # Replace with your image URL
+    caption = "Welcome💓✨\n• ɪ ᴄᴀɴ ᴍᴇʀɢᴇ ᴘᴅғs (Mᴀx= 20ᴍʙ ᴘᴇʀ ғɪʟᴇ)\n» Send me PDF files 📕 to merge. When you're done, send /merge to combine them.😉\n\n• ʜɪᴛ /help ᴛᴏ ᴋɴᴏᴡ ᴍᴏʀᴇ"
+    
+    # Send the photo with the caption
+    bot.send_photo(
+        message.chat.id, 
+        photo_url, 
+        caption=caption
+    )
+
+    # Step 2: Create the inline keyboard with 3 buttons
     markup = types.ReplyKeyboardMarkup(row_width=2)
     
-    # Button for developer link
-    dev_button = types.KeyboardButton('Developer Link')
-    
-    # Button for Help
+    # Buttons for "Help", "About", and "Developer"
     help_button = types.KeyboardButton('Help')
+    about_button = types.KeyboardButton('About')
+    dev_button = types.KeyboardButton('Developer')
     
-    markup.add(dev_button, help_button)
+    # Add buttons to the markup
+    markup.add(help_button, about_button)  # First two buttons on the same line
+    markup.add(dev_button)  # Third button on a new line
     
-    bot.send_message(message.chat.id, "*Welcome💓✨\n• ɪ ᴄᴀɴ ᴍᴇʀɢᴇ ᴘᴅғs (Mᴀx= 20ᴍʙ ᴘᴇʀ ғɪʟᴇ)\n» Send me PDF files 📕 to merge. When you're done, send /merge to combine them.😉\n\n• ʜɪᴛ /help ᴛᴏ ᴋɴᴏᴡ ᴍᴏʀᴇ*", reply_markup=markup)
+    # Step 3: Send a message with the buttons
+    bot.send_message(
+        message.chat.id,
+        "*Welcome💓✨\n• ɪ ᴄᴀɴ ᴍᴇʀɢᴇ ᴘᴅғs (Mᴀx= 20ᴍʙ ᴘᴇʀ ғɪʟᴇ)\n» Send me PDF files 📕 to merge. When you're done, send /merge to combine them.😉\n\n• ʜɪᴛ /help ᴛᴏ ᴋɴᴏᴡ ᴍᴏʀᴇ*",
+        reply_markup=markup
+    )
 
-# Function to handle the "Developer Link" button
-@bot.message_handler(func=lambda message: message.text == "Developer 🪷")
-def send_developer_link(message):
-    bot.send_message(message.chat.id, "Here is the developer's link: https://t.me/Ur_Amit_01")
-
-# Function to handle the "Help" button
-@bot.message_handler(func=lambda message: message.text == "Help 🤖")
+# Help button handler
+@bot.message_handler(func=lambda message: message.text == "Help")
 def show_help(message):
-    markup = types.ReplyKeyboardMarkup(row_width=1)
-    
-    # Button for Back to Start
-    back_button = types.KeyboardButton('Back to Start ⬅️')
-    
-    markup.add(back_button)
-    
     help_text = """
     This is the help page.
     • Send me PDF files you want to merge.
     • Use /merge to combine the files into one PDF.
     • Use /clear to reset the list of files (Recommend when you start to merge new files).
-    Here you can get information about how to use the bot.
     """
+    bot.send_message(message.chat.id, help_text)
+
+# About button handler
+@bot.message_handler(func=lambda message: message.text == "About")
+def show_about(message):
+    about_text = """
+    <b><blockquote>⍟───[ MY ᴅᴇᴛᴀɪʟꜱ ]───⍟</blockquote>
+    
+‣ ᴍʏ ɴᴀᴍᴇ : <a href=https://t.me/{}>{}</a>
+‣ ᴍʏ ʙᴇsᴛ ғʀɪᴇɴᴅ : <a href='tg://settings'>ᴛʜɪs ᴘᴇʀsᴏɴ</a> 
+‣ ᴅᴇᴠᴇʟᴏᴘᴇʀ : <a href='https://t.me/ur_amit_01'>ᴛᴇᴄʜ ᴠᴊ</a> 
+‣ ʟɪʙʀᴀʀʏ : <a href='https://docs.pyrogram.org/'>ᴘʏʀᴏɢʀᴀᴍ</a> 
+‣ ʟᴀɴɢᴜᴀɢᴇ : <a href='https://www.python.org/download/releases/3.0/'>ᴘʏᴛʜᴏɴ 3</a> 
+‣ ᴅᴀᴛᴀ ʙᴀsᴇ : <a href='https://www.mongodb.com/'>ᴍᴏɴɢᴏ ᴅʙ</a></b>
+    """
+    bot.send_message(message.chat.id, about_text)
+
+# Developer button handler
+@bot.message_handler(func=lambda message: message.text == "Developer")
+def send_developer_link(message):
+    bot.send_message(message.chat.id, "Here is the developer's link: https://t.me/Ur_Amit_01")  # Replace with your developer link
+
+# Run the bot
+if __name__ == "__main__":
+    bot.polling()
+
+# Flask route for webhook
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    json_str = request.get_data().decode("UTF-8")
+    update = telebot.types.Update.de_json(json_str)
+    bot.
+
+# Set the webhook for the bot
+if __name__ == "__main__":
+    bot.remove_webhook()
+    WEBHOOK_URL = os.getenv('WEBHOOK_URL')  # Fetch URL from environment variable
+bot.set_webhook(url=WEBHOOK_URL)# Replace with your Koyeb app URL
+    app.run(debug=True, host="0.0.0.0", port=5000)
     
     bot.send_message(message.chat.id, help_text, reply_markup=markup)
-
-# Function to handle the "Back to Start" button
-@bot.message_handler(func=lambda message: message.text == "Back to Start")
-def back_to_start(message):
-    start(message)  # Calls the start function to show the main menu again
-
-# Temporary storage for user files (dictionary to store file paths by user)
-user_files = {}
-
-# Help command handler
-@bot.message_handler(commands=['help'])
-def send_help(message):
-    help_text = "• Send me PDF files you want to merge.\n"
-    help_text += "• Use /merge to combine the files into one PDF.\n"
-    help_text += "• Use /clear to reset the list of files (Recommend when you start to merge new files)."
-    bot.reply_to(message, help_text)
 
 # Handler for received documents (PDFs)
 @bot.message_handler(content_types=['document'])
@@ -349,6 +378,3 @@ async def style(c, m):
 
 # Run the bot
 bot.polling()
-
- # Run the Flask app with Gunicorn
-    app.run(debug=False)
