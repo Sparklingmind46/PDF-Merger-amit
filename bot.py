@@ -10,6 +10,18 @@ from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    json_str = request.get_data().decode("UTF-8")
+    update = telebot.types.Update.de_json(json_str)
+    bot.process_new_updates([update])
+    return "OK", 200
+
+if __name__ == "__main__":
+    # For production use Gunicorn to serve the app
+    bot.remove_webhook()
+    bot.set_webhook(url="https://your-render-app-url.com/webhook")
+
 # Fetch the bot token from the environment variable
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
@@ -337,3 +349,6 @@ async def style(c, m):
 
 # Run the bot
 bot.polling()
+
+ # Run the Flask app with Gunicorn
+    app.run(debug=False)
