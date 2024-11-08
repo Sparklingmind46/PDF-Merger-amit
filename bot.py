@@ -28,18 +28,22 @@ def send_welcome(message):
     
     # Delete the sticker message
     bot.delete_message(message.chat.id, sticker_message_id)
-    
-    # Create inline keyboard with a button that links to the developer
-    markup = InlineKeyboardMarkup()
-    developer_button = InlineKeyboardButton("Developer 🪷", url="https://t.me/Ur_Amit_01")
-    markup.add(developer_button)
+
+    # Send start message with developer link button
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.add(types.KeyboardButton("Developer Link"))
+    bot.send_message(message.chat.id, "*Welcome! Send me PDF files to merge. When you're done, use /merge to combine them.😉*", parse_mode='Markdown')
+
+@bot.message_handler(func=lambda message: message.text == "Developer Link")
+def send_developer_link(message):
+    bot.send_message(message.chat.id, "My Developer 🪷: https://t.me/Ur_Amit_01")
     
     # Send the welcome message with the inline keyboard
     bot.send_message(
         message.chat.id,
         "*Welcome! Send me PDF files to merge. When you're done, use /merge to combine them.😉*",
         parse_mode='Markdown'
-    )
+   )
 
 # Temporary storage for user files (dictionary to store file paths by user)
 user_files = {}
