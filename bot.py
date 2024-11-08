@@ -4,7 +4,7 @@ from telebot import types
 from PyPDF2 import PdfMerger
 import time
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
-from Extras.Fontstyle.fotnt_string import Fonts
+from fotnt_string import Fonts
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
