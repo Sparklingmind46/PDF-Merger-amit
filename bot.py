@@ -1,6 +1,32 @@
 import os
 import telebot
+from io import BytesIO
 from PyPDF2 import PdfMerger
+
+def merge_pdfs(pdf_files):
+    merger = PdfMerger()
+    for pdf in pdf_files:
+        # Convert PDF to BytesIO for compatibility
+        pdf_stream = BytesIO(pdf)
+        merger.append(pdf_stream)
+
+    output = BytesIO()
+    merger.write(output)
+    output.seek(0)
+    return output
+
+#To handle PDFs size
+def handle_pdf(message):
+    file_id = message.document.file_id
+    file_info = bot.get_file(file_id)
+
+    # Check file size before downloading
+    if message.document.file_size > 20 * 1024 * 1024:  # 20MB limit
+        bot.reply_to(message, "Sorry, the file is too large to process 😔 (max 20MB).")
+        return
+
+    downloaded_file = bot.download_file(file_info.file_path)
+    ...
 
 # Get the bot token from environment variables
 API_TOKEN = os.getenv("TELEGRAM_API_TOKEN")
