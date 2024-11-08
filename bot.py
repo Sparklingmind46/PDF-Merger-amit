@@ -38,7 +38,7 @@ def send_welcome(message):
     
     # Adding buttons
     button1 = types.KeyboardButton('ᴅᴇᴠᴇʟᴏᴘᴇᴇ 🪷', url='https://t.me/Ur_Amit_01')
-    button2 = types.KeyboardButton('Help', callback_data='/help')
+    button2 = types.KeyboardButton('Help 🤖', callback_data='/help')
     
     # Adding buttons to the markup
     markup.add(button1, button2)
@@ -46,7 +46,7 @@ def send_welcome(message):
     # Send the welcome message with the markup (keyboard)
     bot.send_message(message.chat.id,
                      f"*Welcome, {message.from_user.first_name} 💓✨\n•ɪ ᴄᴀɴ ᴍᴇʀɢᴇ ᴘᴅғs (Mᴀx= 20ᴍʙ ᴘᴇʀ ғɪʟᴇ)\n»Send me PDF files 📕 to merge. When you're done, use /merge to combine them.😉\n\n•ʜɪᴛ /help ᴛᴏ ᴋɴᴏᴡ ᴍᴏʀᴇ*", 
-                     parse_mode='Markdown
+                     parse_mode='Markdown')
                      
 # Handler for /help command
 @bot.message_handler(commands=['help'])
