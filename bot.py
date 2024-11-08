@@ -31,42 +31,50 @@ def send_welcome(message):
     # Delete the sticker message
     bot.delete_message(message.chat.id, sticker_message_id)
     
+# Function to create the "Start" menu with buttons
 @bot.message_handler(commands=['start'])
-def send_welcome(message):
-    # Creating the keyboard
+def start(message):
     markup = types.ReplyKeyboardMarkup(row_width=2)
     
-    # Adding buttons
-    button1 = types.KeyboardButton('ᴅᴇᴠᴇʟᴏᴘᴇᴇ 🪷', url='https://t.me/Ur_Amit_01')
-    button2 = types.KeyboardButton('Help 🤖', callback_data='/help')
+    # Button for developer link
+    dev_button = types.KeyboardButton('Developer Link')
     
-    # Adding buttons to the markup
-    markup.add(button1, button2)
+    # Button for Help
+    help_button = types.KeyboardButton('Help')
     
-    # Send the welcome message with the markup (keyboard)
-    bot.send_message(message.chat.id,
-                     f"*Welcome, {message.from_user.first_name} 💓✨\n•ɪ ᴄᴀɴ ᴍᴇʀɢᴇ ᴘᴅғs (Mᴀx= 20ᴍʙ ᴘᴇʀ ғɪʟᴇ)\n»Send me PDF files 📕 to merge. When you're done, use /merge to combine them.😉\n\n•ʜɪᴛ /help ᴛᴏ ᴋɴᴏᴡ ᴍᴏʀᴇ*", 
-                     parse_mode='Markdown')
-                     
-# Handler for /help command
-@bot.message_handler(commands=['help'])
-def send_help(message):
-    # Create a markup with the back button
+    markup.add(dev_button, help_button)
+    
+    bot.send_message(message.chat.id, "*Welcome💓✨\n• ɪ ᴄᴀɴ ᴍᴇʀɢᴇ ᴘᴅғs (Mᴀx= 20ᴍʙ ᴘᴇʀ ғɪʟᴇ)\n» Send me PDF files 📕 to merge. When you're done, send /merge to combine them.😉\n\n• ʜɪᴛ /help ᴛᴏ ᴋɴᴏᴡ ᴍᴏʀᴇ*", reply_markup=markup)
+
+# Function to handle the "Developer Link" button
+@bot.message_handler(func=lambda message: message.text == "Developer 🪷")
+def send_developer_link(message):
+    bot.send_message(message.chat.id, "Here is the developer's link: https://t.me/Ur_Amit_01")
+
+# Function to handle the "Help" button
+@bot.message_handler(func=lambda message: message.text == "Help 🤖")
+def show_help(message):
     markup = types.ReplyKeyboardMarkup(row_width=1)
     
-    # Adding a button that will simulate the start command
+    # Button for Back to Start
     back_button = types.KeyboardButton('Back to Start ⬅️')
+    
     markup.add(back_button)
     
-    # Send the help message with the back button
-    bot.send_message(message.chat.id, 
-                     "This is the help message! You can get started by clicking the buttons below.", 
-                     reply_markup=markup)
+    help_text = """
+    This is the help page.
+    • Send me PDF files you want to merge.
+    • Use /merge to combine the files into one PDF.
+    • Use /clear to reset the list of files (Recommend when you start to merge new files).
+    Here you can get information about how to use the bot.
+    """
+    
+    bot.send_message(message.chat.id, help_text, reply_markup=markup)
 
-@bot.message_handler(func=lambda message: message.text == 'Back to Start')
+# Function to handle the "Back to Start" button
+@bot.message_handler(func=lambda message: message.text == "Back to Start")
 def back_to_start(message):
-    send_welcome(message)
-
+    start(message)  # Calls the start function to show the main menu again
 
 # Temporary storage for user files (dictionary to store file paths by user)
 user_files = {}
@@ -74,9 +82,9 @@ user_files = {}
 # Help command handler
 @bot.message_handler(commands=['help'])
 def send_help(message):
-    help_text = "1. Send me PDF files you want to merge.\n"
-    help_text += "2. Use /merge to combine the files into one PDF.\n"
-    help_text += "3. Use /clear to reset the list of files (Recommend when you start to merge new files)."
+    help_text = "• Send me PDF files you want to merge.\n"
+    help_text += "• Use /merge to combine the files into one PDF.\n"
+    help_text += "• Use /clear to reset the list of files (Recommend when you start to merge new files)."
     bot.reply_to(message, help_text)
 
 # Handler for received documents (PDFs)
@@ -100,9 +108,9 @@ def handle_document(message):
         
         # Store file path in user's file list
         user_files[user_id].append(file_name)
-        bot.reply_to(message, f"Added {file_name} to the list for merging.")
+        bot.reply_to(message, f"Added {file_name} to the list for merging, send /merge when you're done ✅.")
     else:
-        bot.reply_to(message, "Please send only PDF files.")
+        bot.reply_to(message, "Please send only PDF files 💔")
 
 # Merge command handler
 @bot.message_handler(commands=['merge'])
@@ -111,7 +119,7 @@ def merge_pdfs(message):
     
     # Check if there are files to merge
     if user_id not in user_files or len(user_files[user_id]) < 2:
-        bot.reply_to(message, "You need to send at least two PDF files before merging.")
+        bot.reply_to(message, "You need to send at least two PDF files 📕 before merging.")
         return
     
     # Create a PdfMerger object
@@ -130,7 +138,7 @@ def merge_pdfs(message):
         with open(merged_file_name, "rb") as merged_file:
             bot.send_document(message.chat.id, merged_file)
         
-        bot.reply_to(message, "Here is your merged PDF 📕 ")
+        bot.reply_to(message, "Here is your merged PDF 📕😎")
         
         # Clean up merged file
         os.remove(merged_file_name)
@@ -150,5 +158,5 @@ def clear_files(message):
         user_files[user_id] = []
     bot.reply_to(message, "Your file list has been cleared 🧹.")
 
-# Polling the bot to keep it running
-bot.polling(none_stop=True)
+# Run the bot
+bot.polling()
