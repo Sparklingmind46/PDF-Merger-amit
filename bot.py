@@ -5,6 +5,15 @@ from PyPDF2 import PdfMerger
 import time
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
+# Fetch the bot token from the environment variable
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+
+# Ensure the token is loaded
+if not BOT_TOKEN:
+    raise ValueError("No bot token provided. Please set the BOT_TOKEN environment variable.")
+
+bot = telebot.TeleBot(BOT_TOKEN)
+
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     # Replace 'YOUR_STICKER_FILE_ID' with the actual file ID of the sticker
@@ -31,10 +40,6 @@ def send_welcome(message):
         "*Welcome! Send me PDF files to merge. When you're done, use /merge to combine them.😉*",
         parse_mode='Markdown'
     )
-    
-# Initialize bot with token from environment variable
-API_TOKEN = os.getenv('API_TOKEN')
-bot = telebot.TeleBot(API_TOKEN)
 
 # Temporary storage for user files (dictionary to store file paths by user)
 user_files = {}
