@@ -4,13 +4,11 @@ from telebot import types
 from PyPDF2 import PdfMerger
 import time 
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto
+from PIL import Image
 
 # Initialize bot with token from environment variable
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 bot = telebot.TeleBot(BOT_TOKEN)
-
-# Temporary storage for user files (dictionary to store file paths by user)
-user_files = {}
 
 # Start command handler
 @bot.message_handler(commands=['start'])
@@ -137,90 +135,112 @@ def handle_filename_input(message):
         bot.register_next_step_handler(message, handle_filename_input)
 
 def merge_pdfs_with_filename(user_id, chat_id, filename):
-    # Create a PdfMerger object
     merger = PdfMerger()
-    progress_text = "Merging PDFs: 0%"
+    total_files = len(user_files["pdfs"].get(user_id, [])) + len(user_files["images"].get(user_id, []))
+    progress_message = bot.send_message(chat_id, "Merging files: 0%")
 
-    # Send initial progress message
-    progress_message = bot.send_message(chat_id, progress_text)
+    # Convert images to a single PDF first
+    image_pdfs = []
+    if user_files["images"].get(user_id):
+        image_pdf_name = f"{user_id}_images.pdf"
+        images = [Image.open(img_path).convert('RGB') for img_path in user_files["images"][user_id]]
+        images[0].save(image_pdf_name, save_all=True, append_images=images[1:])
+        image_pdfs.append(image_pdf_name)
 
     try:
-        # Append each PDF file for merging
-        total_files = len(user_files[user_id])
-        for i, pdf_file in enumerate(user_files[user_id]):
+        # Append each PDF or converted image PDF file and update progress
+        for i, pdf_file in enumerate(user_files["pdfs"].get(user_id, []) + image_pdfs):
             merger.append(pdf_file)
-            # Update progress (simple percentage)
-            progress_text = f"Merging PDFs: {int((i+1) / total_files * 100)}%"
-            update_progress(chat_id, progress_message.message_id, progress_text)
-            time.sleep(1)  # Simulate time for merging each file
+            # Calculate and update progress percentage
+            progress_percent = int(((i + 1) / total_files) * 100)
+            bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=progress_message.message_id,
+                text=f"Merging files: {progress_percent}%"
+            )
+            time.sleep(1)  # Optional delay to simulate progress time
 
-        # Output merged file with the user-provided filename
+        # Write the final merged PDF
         with open(filename, "wb") as merged_file:
             merger.write(merged_file)
-        
-        # Simulate upload progress (not real-time, but you can show it)
-        progress_text = "Uploading merged file..."
-        update_progress(chat_id, progress_message.message_id, progress_text)
+
+        # Notify the user that the merging is complete
+        bot.edit_message_text(
+            chat_id=chat_id,
+            message_id=progress_message.message_id,
+            text="Uploading merged file..."
+        )
 
         # Send the merged PDF back to the user
         with open(filename, "rb") as merged_file:
             bot.send_document(chat_id, merged_file)
         
-        # After sending the file, delete the progress message
-        bot.delete_message(chat_id, progress_message.message_id)
-
-        bot.send_message(chat_id, f"*Here is your merged PDF !*",parse_mode="Markdown")
-
+        bot.send_message(chat_id, "Here is your merged PDF!",parse_mode="Markdown")
     finally:
-        # Clean up each user's files after merging
-        for pdf_file in user_files[user_id]:
-            os.remove(pdf_file)
-        user_files[user_id] = []
+        # Clean up
+        for file_list in user_files.values():
+            if user_id in file_list:
+                for file in file_list[user_id]:
+                    os.remove(file)
+                file_list[user_id] = []
+        os.remove(filename)
+    
+    # Delete the progress message
+    bot.delete_message(chat_id, progress_message.message_id)
+
 
          
 # Handler for received documents (PDFs)
 MAX_FILE_SIZE = 20 * 1024 * 1024  # 20 MB in bytes
 
+# Dictionary to store PDFs and images separately for each user
+user_files = {
+    "pdfs": {},   # Stores paths to PDF files
+    "images": {}  # Stores paths to image files
+}
+
 @bot.message_handler(content_types=['document'])
 def handle_document(message):
-    # Check if the file is a PDF
-    if message.document.mime_type == 'application/pdf':
-        file_size = message.document.file_size
-        
-        # Check if the file exceeds the size limit
-        if file_size > MAX_FILE_SIZE:
-            bot.reply_to(message, "Sorry, the file is too large. Please upload a PDF smaller than 20 MB.")
-            return
-        
-        # Ensure directory for each user
-        user_id = message.from_user.id
-        if user_id not in user_files:
-            user_files[user_id] = []
-        
-        # Get the file info and download it in one go
-        file_info = bot.get_file(message.document.file_id)
-        downloaded_file = bot.download_file(file_info.file_path)
-        
-        # Save the file with a unique name
-        file_name = f"{message.document.file_name}"
-        with open(file_name, 'wb') as new_file:
-            new_file.write(downloaded_file)
-        
-        # Store file path in user's file list
-        user_files[user_id].append(file_name)
-        bot.reply_to(message, f"Added {file_name} to the list for merging.")
+    user_id = message.from_user.id
+    file_type = message.document.mime_type
+    file_size = message.document.file_size
+    
+    if file_size > MAX_FILE_SIZE:
+        bot.reply_to(message, "File too large. Please upload files under 20 MB.")
+        return
+
+    # Ensure dictionary entries for each user
+    if user_id not in user_files["pdfs"]:
+        user_files["pdfs"][user_id] = []
+        user_files["images"][user_id] = []
+
+    file_info = bot.get_file(message.document.file_id)
+    downloaded_file = bot.download_file(file_info.file_path)
+    
+    # Save file with a unique name
+    file_name = f"{message.document.file_name}"
+    with open(file_name, 'wb') as new_file:
+        new_file.write(downloaded_file)
+
+    # Check if file is a PDF or an image and store accordingly
+    if file_type == 'application/pdf':
+        user_files["pdfs"][user_id].append(file_name)
+        bot.reply_to(message, f"Added {file_name} to the PDF list for merging.")
+    elif file_type in ['image/jpeg', 'image/png']:
+        user_files["images"][user_id].append(file_name)
+        bot.reply_to(message, f"Added {file_name} to the image list for merging.")
     else:
-        bot.reply_to(message, "Please send only PDF files.")
+        bot.reply_to(message, "Please send only PDF or image files.")
 
 
-# Clear command to reset files
 @bot.message_handler(commands=['clear'])
 def clear_files(message):
     user_id = message.from_user.id
-    if user_id in user_files:
-        for pdf_file in user_files[user_id]:
-            os.remove(pdf_file)
-        user_files[user_id] = []
+    for file_list in user_files.values():
+        if user_id in file_list:
+            for file_path in file_list[user_id]:
+                os.remove(file_path)
+            file_list[user_id] = []
     bot.reply_to(message, "Your file list has been cleared.")
 
 bot.delete_webhook()
