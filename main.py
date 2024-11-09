@@ -5,18 +5,27 @@ from PyPDF2 import PdfMerger
 import time
 from pyrogram import Client
 
+import os
+from pyrogram import Client
+
 # Fetch the API credentials from environment variables
 api_id = os.getenv("API_ID")
 api_hash = os.getenv("API_HASH")
+bot_token = os.getenv("BOT_TOKEN")
 
-if not api_id or not api_hash:
-    raise ValueError("API ID and API Hash are required.")
+# Debugging: Print the credentials
+print(f"API_ID: {api_id}")
+print(f"API_HASH: {api_hash}")
 
+# Ensure all required credentials are provided
+if not api_id or not api_hash or not bot_token:
+    raise ValueError("API ID, API Hash, and Bot Token are required.")
+
+# Initialize the Pyrogram Client with API credentials
 app = Client("my_bot", api_id=api_id, api_hash=api_hash)
 
-# Initialize bot with token from environment variable
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-app = Client("pdf_genie", bot_token=BOT_TOKEN)
+# Initialize the bot with the bot token
+app = Client("pdf_genie", bot_token=bot_token)
 
 # Temporary storage for user files (dictionary to store file paths by user)
 user_files = {}
