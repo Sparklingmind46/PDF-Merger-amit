@@ -4,9 +4,7 @@ from telebot import types
 from PyPDF2 import PdfMerger
 import time 
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto
-import pyrogram
-from pyrogram import Client, filters
-from pyrogram.errors import UsernameNotOccupied
+
 
 
 # Initialize bot with token from environment variable
@@ -227,9 +225,10 @@ def clear_files(message):
         user_files[user_id] = []
     bot.reply_to(message, "Your file list has been cleared.")
 
-# restricted saver from public 
-@bot.on_message(filters.text)
-def save(client: pyrogram.client.Client, message: pyrogram.types.messages_and_media.message.Message):
+
+# restricted public saver
+@bot.message_handler(content_types=['text'])
+def save(message):
     print(message.text)
 
     if "https://t.me/" in message.text:
@@ -239,16 +238,16 @@ def save(client: pyrogram.client.Client, message: pyrogram.types.messages_and_me
         toID = int(temp[1].strip()) if len(temp) > 1 else fromID
 
         username = datas[3]
-        
+
         for msgid in range(fromID, toID + 1):
             try:
-                msg = bot.get_messages(username, msgid)
+                msg = bot.get_messages(username, msgid)  # This line won't work in telebot
                 bot.copy_message(message.chat.id, msg.chat.id, msg.id, reply_to_message_id=message.id)
-            except (UsernameNotOccupied, Exception) as e:
-                error_message = f"**Error⚠️**: {str(e)}" if isinstance(e, Exception) else "**The username is not occupied by anyone 🚫**"
+            except Exception as e:
+                error_message = f"**Error ⚠️**: {str(e)}"
                 bot.send_message(message.chat.id, error_message, reply_to_message_id=message.id)
 
-            time.sleep(3)  # wait time
+            time.sleep(3)  # wait time 
 
 bot.delete_webhook()
 # Run the bot
