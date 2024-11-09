@@ -2,6 +2,7 @@ import os
 import telebot
 from telebot import types
 from PyPDF2 import PdfMerger
+import time 
 
 
 # Initialize bot with token from environment variable
@@ -16,7 +17,21 @@ user_files = {}
 # Start command handler
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    bot.reply_to(message, "Welcome! Send me PDF files to merge. When you're done, use /merge to combine them.")
+    # Send a sticker first
+    sticker_id = 'CAACAgUAAxkBAAECEpdnLcqQbmvQfCMf5E3rBK2dkgzqiAACJBMAAts8yFf1hVr67KQJnh4E'
+    sent_sticker = bot.send_sticker(message.chat.id, sticker_id)
+    sticker_message_id = sent_sticker.message_id
+    time.sleep(3)
+    bot.delete_message(message.chat.id, sticker_message_id)
+    
+    
+    # Now send the image with a caption
+    image_url = 'https://envs.sh/AfO.jpg'
+    bot.send_photo(
+        message.chat.id, 
+        image_url, 
+        caption="Welcome💓✨\n• I can merge PDFs (Max= 20MB per file).\n• Send PDF files 📕 to merge and use /merge when you're done."
+    )
 
 
 # Help command handler
