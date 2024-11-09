@@ -179,7 +179,7 @@ def merge_pdfs_with_filename(user_id, chat_id, filename):
 
          
 # Handler for received documents (PDFs)
-MAX_FILE_SIZE = 50 * 1024 * 1024  # 20 MB in bytes
+MAX_FILE_SIZE = 20 * 1024 * 1024  # 20 MB in bytes
 
 @bot.message_handler(content_types=['document'])
 def handle_document(message):
@@ -189,7 +189,7 @@ def handle_document(message):
         
         # Check if the file exceeds the size limit
         if file_size > MAX_FILE_SIZE:
-            bot.reply_to(message, "Sorry, the file is too large. Please upload a PDF smaller than 50 MB.")
+            bot.reply_to(message, "Sorry, dude the file is too large. Please upload a PDF smaller than 20 MB. TeleBot API Limits Sucks 🥲")
             return
         
         # Ensure directory for each user
