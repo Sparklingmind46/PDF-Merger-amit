@@ -7,7 +7,7 @@ import time
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from font_string import Fonts  # Ensure this module is available
+from fotnt_string import Fonts  # Ensure this module is available
 
 # Fetch the bot token and webhook URL from the environment variables
 BOT_TOKEN = os.getenv("BOT_TOKEN")
