@@ -3,17 +3,21 @@ import telebot
 from telebot import types
 from PyPDF2 import PdfMerger
 
+
 # Initialize bot with token from environment variable
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 bot = telebot.TeleBot(BOT_TOKEN)
 
+
 # Temporary storage for user files (dictionary to store file paths by user)
 user_files = {}
+
 
 # Start command handler
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     bot.reply_to(message, "Welcome! Send me PDF files to merge. When you're done, use /merge to combine them.")
+
 
 # Help command handler
 @bot.message_handler(commands=['help'])
@@ -22,6 +26,7 @@ def send_help(message):
     help_text += "2. Use /merge to combine the files into one PDF.\n"
     help_text += "3. Use /clear to reset the list of files."
     bot.reply_to(message, help_text)
+
 
 # Handler for received documents (PDFs)
 @bot.message_handler(content_types=['document'])
@@ -47,6 +52,7 @@ def handle_document(message):
         bot.reply_to(message, f"Added {file_name} to the list for merging.")
     else:
         bot.reply_to(message, "Please send only PDF files.")
+
 
 # Merge command handler
 @bot.message_handler(commands=['merge'])
@@ -84,6 +90,7 @@ def merge_pdfs(message):
             os.remove(pdf_file)
         user_files[user_id] = []
 
+
 # Clear command to reset files
 @bot.message_handler(commands=['clear'])
 def clear_files(message):
@@ -93,6 +100,7 @@ def clear_files(message):
             os.remove(pdf_file)
         user_files[user_id] = []
     bot.reply_to(message, "Your file list has been cleared.")
+
 
 # Run the bot
 bot.polling()
