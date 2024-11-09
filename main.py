@@ -4,7 +4,7 @@ from telebot import types
 from PyPDF2 import PdfMerger
 import time 
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto
-from pyrogram import Client
+from pyrogram import Client, filters
 
 # Initialize bot with token from environment variable
 BOT_TOKEN = os.getenv('BOT_TOKEN')
@@ -228,32 +228,89 @@ def clear_files(message):
 
 
 # restricted public saver
-with Client("my_account", api_id=api_id, api_hash=api_hash) as app:
 
-    @app.on_message(filters.text)
-    def save(client, message):
-        print(message.text)
+# Initialize the bot
+bot = Client("my_bot", api_id=api_id, api_hash=api_hash)
 
-        if "https://t.me/" in message.text:
-            datas = message.text.split("/")
-            temp = datas[-1].replace("?single", "").split("-")
-            fromID = int(temp[0].strip())
-            toID = int(temp[1].strip()) if len(temp) > 1 else fromID
+# Create a directory to save media
+if not os.path.exists('saved_media'):
+    os.makedirs('saved_media')
 
-            username = datas[3]
+@bot.on_message(filters.text)
+def save(client: Client, message):
+    print(message.text)
 
-            for msgid in range(fromID, toID + 1):
-                try:
-                    msg = app.get_messages(username, msgid)  # Fetching message using pyrogram
-                    bot.copy_message(message.chat.id, msg.chat.id, msg.id, reply_to_message_id=message.id)  # Sending message via Telebot
-                except Exception as e:
-                    error_message = f"**Error**: {str(e)}"
-                    bot.send_message(message.chat.id, error_message, reply_to_message_id=message.id)
+    # Checking if the message contains a Telegram URL
+    if "https://t.me/" in message.text:
 
-                time.sleep(3)  # Wait time to prevent hitting the rate limit
+        datas = message.text.split("/")
+        temp = datas[-1].replace("?single", "").split("-")
+        fromID = int(temp[0].strip())
 
-# Start the Telebot polling loop
-bot.polling()
+        try:
+            toID = int(temp[1].strip())
+        except IndexError:
+            toID = fromID
+
+        username = datas[3]
+
+        for msgid in range(fromID, toID + 1):
+            try:
+                msg = bot.get_messages(username, msgid)  # Fetching the message by ID
+                
+                # Handling different types of media
+
+                # If it's a photo
+                if msg.photo:
+                    file_path = f'saved_media/photo_{msg.message_id}.jpg'
+                    msg.download(file_path)
+                    print(f"Downloaded photo {msg.message_id}")
+
+                # If it's a video
+                elif msg.video:
+                    file_path = f'saved_media/video_{msg.message_id}.mp4'
+                    msg.download(file_path)
+                    print(f"Downloaded video {msg.message_id}")
+
+                # If it's a document
+                elif msg.document:
+                    file_path = f'saved_media/document_{msg.message_id}_{msg.document.file_name}'
+                    msg.download(file_path)
+                    print(f"Downloaded document {msg.message_id}")
+
+                # If it's audio
+                elif msg.audio:
+                    file_path = f'saved_media/audio_{msg.message_id}.mp3'
+                    msg.download(file_path)
+                    print(f"Downloaded audio {msg.message_id}")
+
+                # If it's a voice message
+                elif msg.voice:
+                    file_path = f'saved_media/voice_{msg.message_id}.ogg'
+                    msg.download(file_path)
+                    print(f"Downloaded voice message {msg.message_id}")
+
+                # If it's a sticker
+                elif msg.sticker:
+                    file_path = f'saved_media/sticker_{msg.message_id}.webp'
+                    msg.download(file_path)
+                    print(f"Downloaded sticker {msg.message_id}")
+
+                # If it's a text message
+                elif msg.text:
+                    with open('saved_media/messages.txt', 'a', encoding='utf-8') as f:
+                        f.write(f"Message ID: {msg.message_id}\n")
+                        f.write(f"Date: {msg.date}\n")
+                        f.write(f"Text: {msg.text}\n\n")
+                    print(f"Saved text message {msg.message_id}")
+                
+                # Copy the message to the target chat (if needed)
+                bot.copy_message(message.chat.id, msg.chat.id, msg.id, reply_to_message_id=message.id)
+
+            except Exception as e:
+                bot.send_message(message.chat.id, f"**Error**: {str(e)}", reply_to_message_id=message.id)
+            
+            time.sleep(3)  # Wait time to avoid hitting rate limits
 
 bot.delete_webhook()
 # Run the bot
