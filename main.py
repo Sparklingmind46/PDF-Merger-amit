@@ -98,6 +98,62 @@ def send_help(message):
     bot.reply_to(message, help_text)
 
 
+# Merge command handler
+@bot.message_handler(commands=['merge'])
+def merge_pdfs(message):
+    user_id = message.from_user.id
+    
+    # Check if there are files to merge
+    if user_id not in user_files or len(user_files[user_id]) < 2:
+        bot.reply_to(message, "You need to send at least two PDF files before merging.")
+        return
+    
+    # Ask for the filename
+    bot.reply_to(message, "Please provide a filename for the merged PDF (without the .pdf extension).")
+    bot.register_next_step_handler(message, handle_filename_input)
+
+# Handler for receiving the filename
+def handle_filename_input(message):
+    user_id = message.from_user.id
+    filename = message.text.strip()
+    
+    if filename:
+        # Ensure the filename ends with .pdf
+        if not filename.lower().endswith(".pdf"):
+            filename += ".pdf"
+        
+        # Proceed to merge the PDFs with the given filename
+        merge_pdfs_with_filename(user_id, message.chat.id, filename)
+    else:
+        bot.reply_to(message, "Please provide a valid filename.")
+        bot.register_next_step_handler(message, handle_filename_input)
+
+def merge_pdfs_with_filename(user_id, chat_id, filename):
+    # Create a PdfMerger object
+    merger = PdfMerger()
+    try:
+        # Append each PDF file for merging
+        for pdf_file in user_files[user_id]:
+            merger.append(pdf_file)
+        
+        # Output merged file with the user-provided filename
+        with open(filename, "wb") as merged_file:
+            merger.write(merged_file)
+        
+        # Send the merged PDF back to the user
+        with open(filename, "rb") as merged_file:
+            bot.send_document(chat_id, merged_file)
+        
+        bot.reply_to(chat_id, f"*Here is your merged PDF with filename {filename}!*")
+        
+        # Clean up merged file
+        os.remove(filename)
+    finally:
+        # Cleanup each user's files after merging
+        for pdf_file in user_files[user_id]:
+            os.remove(pdf_file)
+        user_files[user_id] = []
+
 # Handler for received documents (PDFs)
 @bot.message_handler(content_types=['document'])
 def handle_document(message):
@@ -122,43 +178,6 @@ def handle_document(message):
         bot.reply_to(message, f"Added {file_name} to the list for merging.")
     else:
         bot.reply_to(message, "Please send only PDF files.")
-
-
-# Merge command handler
-@bot.message_handler(commands=['merge'])
-def merge_pdfs(message):
-    user_id = message.from_user.id
-    
-    # Check if there are files to merge
-    if user_id not in user_files or len(user_files[user_id]) < 2:
-        bot.reply_to(message, "You need to send at least two PDF files before merging.")
-        return
-    
-    # Create a PdfMerger object
-    merger = PdfMerger()
-    try:
-        # Append each PDF file for merging
-        for pdf_file in user_files[user_id]:
-            merger.append(pdf_file)
-        
-        # Output merged file
-        merged_file_name = f"{user_id}_merged.pdf"
-        with open(merged_file_name, "wb") as merged_file:
-            merger.write(merged_file)
-        
-        # Send the merged PDF back to the user
-        with open(merged_file_name, "rb") as merged_file:
-            bot.send_document(message.chat.id, merged_file)
-        
-        bot.reply_to(message, "*Here is your merged PDF!*")
-        
-        # Clean up merged file
-        os.remove(merged_file_name)
-    finally:
-        # Cleanup each user's files after merging
-        for pdf_file in user_files[user_id]:
-            os.remove(pdf_file)
-        user_files[user_id] = []
 
 
 # Clear command to reset files
