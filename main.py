@@ -228,29 +228,26 @@ def clear_files(message):
 
 
 # restricted public saver
-@app.on_message(filters.text)
-def save(message):
-    print(message.text)
+with Client("my_account", api_id=api_id, api_hash=api_hash) as app:
 
-    if "https://t.me/" in message.text:
-        datas = message.text.split("/")
-        temp = datas[-1].replace("?single", "").split("-")
-        fromID = int(temp[0].strip())
-        toID = int(temp[1].strip()) if len(temp) > 1 else fromID
+    @app.on_message(filters.text)
+    def save(client, message):
+        print(message.text)
 
-        username = datas[3]  # Extract the channel username
+        if "https://t.me/" in message.text:
+            datas = message.text.split("/")
+            temp = datas[-1].replace("?single", "").split("-")
+            fromID = int(temp[0].strip())
+            toID = int(temp[1].strip()) if len(temp) > 1 else fromID
 
-        # Initialize Pyrogram client without a session file
-        with Client("my_account", api_id=api_id, api_hash=api_hash) as app:
+            username = datas[3]
+
             for msgid in range(fromID, toID + 1):
                 try:
-                    # Fetch the message using Pyrogram
-                    msg = app.get_messages(username, msgid)
-                    
-                    # Copy the message to the user's chat using Telebot
-                    bot.copy_message(message.chat.id, msg.chat.id, msg.id, reply_to_message_id=message.id)
+                    msg = app.get_messages(username, msgid)  # Fetching message using pyrogram
+                    bot.copy_message(message.chat.id, msg.chat.id, msg.id, reply_to_message_id=message.id)  # Sending message via Telebot
                 except Exception as e:
-                    error_message = f"**Error⚠️**: {str(e)}"
+                    error_message = f"**Error**: {str(e)}"
                     bot.send_message(message.chat.id, error_message, reply_to_message_id=message.id)
 
                 time.sleep(3)  # Wait time to prevent hitting the rate limit
