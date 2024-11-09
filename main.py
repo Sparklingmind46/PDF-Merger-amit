@@ -55,7 +55,7 @@ def callback_handler(call):
     # Get the bot's username dynamically
         bot_username = bot.username
         new_image_url = 'https://envs.sh/jxZ.jpg'
-        new_caption = ABOUT_TXT.format(bot_username, bot_username)
+        new_caption = ABOUT_TXT
         markup = InlineKeyboardMarkup().add(InlineKeyboardButton("Back", callback_data="back"))
     elif call.data == "back":
         # Go back to the start message
@@ -83,7 +83,7 @@ def callback_handler(call):
 
 ABOUT_TXT = """<b><blockquote>⍟───[ MY ᴅᴇᴛᴀɪʟꜱ ]───⍟</blockquote>
     
-‣ ᴍʏ ɴᴀᴍᴇ : <a href=https://t.me/{}>{}</a>
+‣ ᴍʏ ɴᴀᴍᴇ : <a href='https://t.me/PDF_Genie_Robot'>PDF Genie</a>
 ‣ ᴍʏ ʙᴇsᴛ ғʀɪᴇɴᴅ : <a href='tg://settings'>ᴛʜɪs ᴘᴇʀsᴏɴ</a> 
 ‣ ᴅᴇᴠᴇʟᴏᴘᴇʀ : <a href='https://t.me/Ur_amit_01'>ꫝᴍɪᴛ ꢺɪɴɢʜ ⚝</a> 
 ‣ ʟɪʙʀᴀʀʏ : <a href='https://docs.pyrogram.org/'>ᴘʏʀᴏɢʀᴀᴍ</a> 
