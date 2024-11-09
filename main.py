@@ -170,7 +170,7 @@ def merge_pdfs_with_filename(user_id, chat_id, filename):
         # After sending the file, delete the progress message
         bot.delete_message(chat_id, progress_message.message_id)
 
-        bot.reply_to(chat_id, f"*Here is your merged PDF with filename {filename}!*")
+        bot.send_message(chat_id, f"*Here is your merged PDF !*",parse_mode="Markdown")
 
     finally:
         # Clean up each user's files after merging
