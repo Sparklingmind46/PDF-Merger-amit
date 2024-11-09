@@ -3,6 +3,16 @@ from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto
 from PyPDF2 import PdfMerger
 import time
+from pyrogram import Client
+
+# Fetch the API credentials from environment variables
+api_id = os.getenv("API_ID")
+api_hash = os.getenv("API_HASH")
+
+if not api_id or not api_hash:
+    raise ValueError("API ID and API Hash are required.")
+
+app = Client("my_bot", api_id=api_id, api_hash=api_hash)
 
 # Initialize bot with token from environment variable
 BOT_TOKEN = os.getenv("BOT_TOKEN")
