@@ -99,6 +99,13 @@ def send_help(message):
     help_text += "3. Use /clear to reset the list of files."
     bot.reply_to(message, help_text)
 
+# Helper to update progress
+def update_progress(chat_id, message_id, progress_text):
+    bot.edit_message_text(
+        text=progress_text,
+        chat_id=chat_id,
+        message_id=message_id
+    )
 
 # Merge command handler
 @bot.message_handler(commands=['merge'])
@@ -133,11 +140,21 @@ def handle_filename_input(message):
 def merge_pdfs_with_filename(user_id, chat_id, filename):
     # Create a PdfMerger object
     merger = PdfMerger()
+    progress_text = "Merging PDFs: 0%"
+
+    # Send initial progress message
+    progress_message = bot.send_message(chat_id, progress_text)
+
     try:
         # Append each PDF file for merging
-        for pdf_file in user_files[user_id]:
+        total_files = len(user_files[user_id])
+        for i, pdf_file in enumerate(user_files[user_id]):
             merger.append(pdf_file)
-        
+            # Update progress (simple percentage)
+            progress_text = f"Merging PDFs: {int((i+1) / total_files * 100)}%"
+            update_progress(chat_id, progress_message.message_id, progress_text)
+            time.sleep(1)  # Simulate time for merging each file
+
         # Output merged file with the user-provided filename
         with open(filename, "wb") as merged_file:
             merger.write(merged_file)
@@ -146,8 +163,12 @@ def merge_pdfs_with_filename(user_id, chat_id, filename):
         with open(filename, "rb") as merged_file:
             bot.send_document(chat_id, merged_file)
         
-        bot.reply_to(chat_id, f"*Here is your merged PDF with filename {filename}!*")
-        
+        bot.reply_to(message, f"*Here is your merged PDF with filename {filename}!*")
+
+        # Final progress update
+        progress_text = "Merging PDFs: 100% - Uploading..."
+        update_progress(chat_id, progress_message.message_id, progress_text)
+
         # Clean up merged file
         os.remove(filename)
     finally:
@@ -156,6 +177,7 @@ def merge_pdfs_with_filename(user_id, chat_id, filename):
             os.remove(pdf_file)
         user_files[user_id] = []
 
+         
 # Handler for received documents (PDFs)
 @bot.message_handler(content_types=['document'])
 def handle_document(message):
