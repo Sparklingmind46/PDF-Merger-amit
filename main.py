@@ -159,20 +159,21 @@ def merge_pdfs_with_filename(user_id, chat_id, filename):
         with open(filename, "wb") as merged_file:
             merger.write(merged_file)
         
+        # Simulate upload progress (not real-time, but you can show it)
+        progress_text = "Uploading merged file..."
+        update_progress(chat_id, progress_message.message_id, progress_text)
+
         # Send the merged PDF back to the user
         with open(filename, "rb") as merged_file:
             bot.send_document(chat_id, merged_file)
         
-        bot.reply_to(message, f"*Here is your merged PDF with filename {filename}!*")
+        # After sending the file, delete the progress message
+        bot.delete_message(chat_id, progress_message.message_id)
 
-        # Final progress update
-        progress_text = "Merging PDFs: 100% - Uploading..."
-        update_progress(chat_id, progress_message.message_id, progress_text)
+        bot.reply_to(chat_id, f"*Here is your merged PDF with filename {filename}!*")
 
-        # Clean up merged file
-        os.remove(filename)
     finally:
-        # Cleanup each user's files after merging
+        # Clean up each user's files after merging
         for pdf_file in user_files[user_id]:
             os.remove(pdf_file)
         user_files[user_id] = []
@@ -189,7 +190,7 @@ def handle_document(message):
         
         # Check if the file exceeds the size limit
         if file_size > MAX_FILE_SIZE:
-            bot.reply_to(message, "Sorry, dude the file is too large. Please upload a PDF smaller than 20 MB. TeleBot API Limits Sucks 🥲")
+            bot.reply_to(message, "Sorry, the file is too large. Please upload a PDF smaller than 20 MB.")
             return
         
         # Ensure directory for each user
@@ -199,7 +200,21 @@ def handle_document(message):
         
         # Get the file info and download it
         file_info = bot.get_file(message.document.file_id)
-        downloaded_file = bot.download_file(file_info.file_path)
+        
+        # Initialize progress message
+        progress_message = bot.send_message(message.chat.id, "Downloading file: 0%")
+        
+        # Download file in chunks and update progress
+        downloaded_file = b""
+        chunk_size = 1024  # 1KB chunk size
+        total_downloaded = 0
+        
+        with bot.download_file(file_info.file_path) as file_stream:
+            for chunk in file_stream:
+                downloaded_file += chunk
+                total_downloaded += len(chunk)
+                progress_percentage = int(total_downloaded / file_size * 100)
+                update_progress(message.chat.id, progress_message.message_id, f"Downloading file: {progress_percentage}%")
         
         # Save the file with a unique name
         file_name = f"{message.document.file_name}"
@@ -209,8 +224,6 @@ def handle_document(message):
         # Store file path in user's file list
         user_files[user_id].append(file_name)
         bot.reply_to(message, f"Added {file_name} to the list for merging.")
-    else:
-        bot.reply_to(message, "Please send only PDF files.")
 
 
 # Clear command to reset files
