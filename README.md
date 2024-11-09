@@ -36,15 +36,11 @@ Broadcast Feature: Send announcements to all users with ease.
 ## Commands
 
 /start: Start a conversation with PDF Genie.
-
 /help: Get a list of available commands.
-
 /merge: Merge the uploaded PDFs into one document.
 
 
-## Owner
-
-TG : @Ur_Amit_01 : )
+## Owner : @Ur_Amit_01 : )
 
 ## License
 
