@@ -314,4 +314,4 @@ def save(client: Client, message):
 
 
 # Run the bot
-bot.polling()
+bot.run()
