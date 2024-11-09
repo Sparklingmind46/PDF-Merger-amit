@@ -4,12 +4,13 @@ from telebot import types
 from PyPDF2 import PdfMerger
 import time 
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto
-
-
+from pyrogram import Client
 
 # Initialize bot with token from environment variable
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 bot = telebot.TeleBot(BOT_TOKEN)
+api_id = '22012880'
+api_hash = '5b0e07f5a96d48b704eb9850d274fe1d'
 
 # Temporary storage for user files (dictionary to store file paths by user)
 user_files = {}
@@ -227,7 +228,7 @@ def clear_files(message):
 
 
 # restricted public saver
-@bot.message_handler(content_types=['text'])
+@app.on_message(filters.text)
 def save(message):
     print(message.text)
 
@@ -237,17 +238,25 @@ def save(message):
         fromID = int(temp[0].strip())
         toID = int(temp[1].strip()) if len(temp) > 1 else fromID
 
-        username = datas[3]
+        username = datas[3]  # Extract the channel username
 
-        for msgid in range(fromID, toID + 1):
-            try:
-                msg = bot.get_messages(username, msgid)  # This line won't work in telebot
-                bot.copy_message(message.chat.id, msg.chat.id, msg.id, reply_to_message_id=message.id)
-            except Exception as e:
-                error_message = f"**Error ⚠️**: {str(e)}"
-                bot.send_message(message.chat.id, error_message, reply_to_message_id=message.id)
+        # Initialize Pyrogram client without a session file
+        with Client("my_account", api_id=api_id, api_hash=api_hash) as app:
+            for msgid in range(fromID, toID + 1):
+                try:
+                    # Fetch the message using Pyrogram
+                    msg = app.get_messages(username, msgid)
+                    
+                    # Copy the message to the user's chat using Telebot
+                    bot.copy_message(message.chat.id, msg.chat.id, msg.id, reply_to_message_id=message.id)
+                except Exception as e:
+                    error_message = f"**Error⚠️**: {str(e)}"
+                    bot.send_message(message.chat.id, error_message, reply_to_message_id=message.id)
 
-            time.sleep(3)  # wait time 
+                time.sleep(3)  # Wait time to prevent hitting the rate limit
+
+# Start the Telebot polling loop
+bot.polling()
 
 bot.delete_webhook()
 # Run the bot
