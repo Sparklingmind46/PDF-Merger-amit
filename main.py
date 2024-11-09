@@ -198,23 +198,9 @@ def handle_document(message):
         if user_id not in user_files:
             user_files[user_id] = []
         
-        # Get the file info and download it
+        # Get the file info and download it in one go
         file_info = bot.get_file(message.document.file_id)
-        
-        # Initialize progress message
-        progress_message = bot.send_message(message.chat.id, "Downloading file: 0%")
-        
-        # Download file in chunks and update progress
-        downloaded_file = b""
-        chunk_size = 1024  # 1KB chunk size
-        total_downloaded = 0
-        
-        with bot.download_file(file_info.file_path) as file_stream:
-            for chunk in file_stream:
-                downloaded_file += chunk
-                total_downloaded += len(chunk)
-                progress_percentage = int(total_downloaded / file_size * 100)
-                update_progress(message.chat.id, progress_message.message_id, f"Downloading file: {progress_percentage}%")
+        downloaded_file = bot.download_file(file_info.file_path)
         
         # Save the file with a unique name
         file_name = f"{message.document.file_name}"
@@ -224,6 +210,8 @@ def handle_document(message):
         # Store file path in user's file list
         user_files[user_id].append(file_name)
         bot.reply_to(message, f"Added {file_name} to the list for merging.")
+    else:
+        bot.reply_to(message, "Please send only PDF files.")
 
 
 # Clear command to reset files
