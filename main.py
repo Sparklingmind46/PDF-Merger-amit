@@ -41,8 +41,6 @@ def send_welcome(message):
         caption="•Hello there, Welcome💓✨\n• I can merge PDFs (Max= 20MB per file).\n• Send PDF files 📕 to merge and use /merge when you're done.",
         reply_markup=markup
     )
-        # React with an emoji (smiling face emoji)
-    bot.react(sent_message.chat.id, sent_message.message_id, "😊")
 
 @bot.callback_query_handler(func=lambda call: call.data in ["help", "about", "back"])
 def callback_handler(call):
