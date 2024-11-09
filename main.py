@@ -1,4 +1,4 @@
-byimport os
+import os
 import telebot
 from telebot import types
 from PyPDF2 import PdfMerger
