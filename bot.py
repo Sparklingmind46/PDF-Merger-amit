@@ -5,189 +5,117 @@ from telebot import types
 from PyPDF2 import PdfMerger
 import time
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
-from fotnt_string import Fonts
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from font_string import Fonts  # Ensure this module is available
 
-# Fetch the bot token from the environment variable
+# Fetch the bot token and webhook URL from the environment variables
 BOT_TOKEN = os.getenv("BOT_TOKEN")
+WEBHOOK_URL = os.getenv('WEBHOOK_URL')
 
 # Ensure the token is loaded
 if not BOT_TOKEN:
     raise ValueError("No bot token provided. Please set the BOT_TOKEN environment variable.")
-
-bot = telebot.TeleBot(BOT_TOKEN)
-
-#start
-
-@bot.message_handler(commands=['start'])
-def send_welcome(message):
-    # Replace 'YOUR_STICKER_FILE_ID' with the actual file ID of the sticker
-    sticker_id = 'CAACAgUAAxkBAAECEpdnLcqQbmvQfCMf5E3rBK2dkgzqiAACJBMAAts8yFf1hVr67KQJnh4E'
-    
-    # Send the sticker and get the message ID
-    sent_sticker = bot.send_sticker(message.chat.id, sticker_id)
-    sticker_message_id = sent_sticker.message_id
-    
-    # Wait for 3 seconds
-    time.sleep(3)
-    
-    # Delete the sticker message
-    bot.delete_message(message.chat.id, sticker_message_id)
-
-
-# Fetch the bot token from the environment 
-
-# Fetch the bot token and webhook URL from the environment variables
-BOT_TOKEN = os.getenv('BOT_TOKEN')
-WEBHOOK_URL = os.getenv('WEBHOOK_URL')
-
-# Check if webhook URL is available
 if not WEBHOOK_URL:
     raise ValueError("Webhook URL is missing! Please set the WEBHOOK_URL environment variable.")
 
-# Set the webhook using the environment variable for the URL
-bot.set_webhook(url=WEBHOOK_URL)
+bot = telebot.TeleBot(BOT_TOKEN)
+user_files = {}
 
-# /start command handler
+# Start command handler
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    # Step 1: Send an image with caption
-    photo_url = 'https://envs.sh/AfO.jpg'  # Replace with your image URL
-    caption = "Welcome💓✨\n• ɪ ᴄᴀɴ ᴍᴇʀɢᴇ ᴘᴅғs (Mᴀx= 20ᴍʙ ᴘᴇʀ ғɪʟᴇ)\n» Send me PDF files 📕 to merge. When you're done, send /merge to combine them.😉\n\n• ʜɪᴛ /help ᴛᴏ ᴋɴᴏᴡ ᴍᴏʀᴇ"
-    
-    # Send the photo with the caption
-    bot.send_photo(
-        message.chat.id, 
-        photo_url, 
-        caption=caption
-    )
+    sticker_id = 'CAACAgUAAxkBAAECEpdnLcqQbmvQfCMf5E3rBK2dkgzqiAACJBMAAts8yFf1hVr67KQJnh4E'
+    sent_sticker = bot.send_sticker(message.chat.id, sticker_id)
+    sticker_message_id = sent_sticker.message_id
+    time.sleep(3)
+    bot.delete_message(message.chat.id, sticker_message_id)
 
-    # Step 2: Create the inline keyboard with 3 buttons
+    photo_url = 'https://envs.sh/AfO.jpg'
+    caption = "Welcome💓✨\n• I can merge PDFs (Max= 20MB per file). Send PDF files 📕 to merge and use /merge when ready."
+    bot.send_photo(message.chat.id, photo_url, caption=caption)
+
     markup = types.ReplyKeyboardMarkup(row_width=2)
-    
-    # Buttons for "Help", "About", and "Developer"
-    help_button = types.KeyboardButton('Help')
-    about_button = types.KeyboardButton('About')
-    dev_button = types.KeyboardButton('Developer')
-    
-    # Add buttons to the markup
-    markup.add(help_button, about_button)  # First two buttons on the same line
-    markup.add(dev_button)  # Third button on a new line
-    
-    # Step 3: Send a message with the buttons
+    help_button = types.KeyboardButton('Help ⚙️')
+    about_button = types.KeyboardButton('About 👀')
+    dev_button = types.KeyboardButton('Developer 🪷')
+    markup.add(help_button, about_button)
+    markup.add(dev_button)
+
     bot.send_message(
         message.chat.id,
-        "*Welcome💓✨\n• ɪ ᴄᴀɴ ᴍᴇʀɢᴇ ᴘᴅғs (Mᴀx= 20ᴍʙ ᴘᴇʀ ғɪʟᴇ)\n» Send me PDF files 📕 to merge. When you're done, send /merge to combine them.😉\n\n• ʜɪᴛ /help ᴛᴏ ᴋɴᴏᴡ ᴍᴏʀᴇ*",
+        "*Welcome💓✨\n• I can merge PDFs (Max= 20MB per file). Send PDF files 📕 to merge and use /merge to combine.*",
         reply_markup=markup
     )
 
-# Help button handler
 @bot.message_handler(func=lambda message: message.text == "Help")
 def show_help(message):
     help_text = """
     This is the help page.
-    • Send me PDF files you want to merge.
-    • Use /merge to combine the files into one PDF.
-    • Use /clear to reset the list of files (Recommend when you start to merge new files).
+    • Send PDF files you want to merge.
+    • Use /merge to combine the files.
+    • Use /clear to reset the file list.
     """
     bot.send_message(message.chat.id, help_text)
 
-# About button handler
 @bot.message_handler(func=lambda message: message.text == "About")
 def show_about(message):
     about_text = """
-    <b><blockquote>⍟───[ MY ᴅᴇᴛᴀɪʟꜱ ]───⍟</blockquote>
-    
-‣ ᴍʏ ɴᴀᴍᴇ : <a href=https://t.me/{}>{}</a>
-‣ ᴍʏ ʙᴇsᴛ ғʀɪᴇɴᴅ : <a href='tg://settings'>ᴛʜɪs ᴘᴇʀsᴏɴ</a> 
-‣ ᴅᴇᴠᴇʟᴏᴘᴇʀ : <a href='https://t.me/ur_amit_01'>ᴛᴇᴄʜ ᴠᴊ</a> 
-‣ ʟɪʙʀᴀʀʏ : <a href='https://docs.pyrogram.org/'>ᴘʏʀᴏɢʀᴀᴍ</a> 
-‣ ʟᴀɴɢᴜᴀɢᴇ : <a href='https://www.python.org/download/releases/3.0/'>ᴘʏᴛʜᴏɴ 3</a> 
-‣ ᴅᴀᴛᴀ ʙᴀsᴇ : <a href='https://www.mongodb.com/'>ᴍᴏɴɢᴏ ᴅʙ</a></b>
+    <b>⍟───[ My Details ]───⍟</b>
+    ‣ My name: <a href=https://t.me/{}>{}</a>
+    ‣ Developer: <a href='https://t.me/ur_amit_01'>Tech VJ</a>
+    ‣ Library: <a href='https://docs.pyrogram.org/'>Pyrogram</a>
     """
-    bot.send_message(message.chat.id, about_text)
+    bot.send_message(message.chat.id, about_text, parse_mode="HTML")
 
-# Developer button handler
 @bot.message_handler(func=lambda message: message.text == "Developer")
 def send_developer_link(message):
-    bot.send_message(message.chat.id, "Here is the developer's link: https://t.me/Ur_Amit_01")  # Replace with your developer link
+    bot.send_message(message.chat.id, "Here's the developer's link: https://t.me/Ur_Amit_01")
 
-# Run the bot
-if __name__ == "__main__":
-    bot.polling()
-
-# Set the webhook for the bot
-if __name__ == "__main__":
-    bot.remove_webhook()
-    WEBHOOK_URL = os.getenv('WEBHOOK_URL')  # Fetch URL from environment variable
-bot.set_webhook(url=WEBHOOK_URL)# Replace with your Koyeb app URL
-    app.run(debug=True, host="0.0.0.0", port=5000)
-    
-    bot.send_message(message.chat.id, help_text, reply_markup=markup)
-
-# Handler for received documents (PDFs)
 @bot.message_handler(content_types=['document'])
 def handle_document(message):
-    # Check if the file is a PDF
     if message.document.mime_type == 'application/pdf':
-        # Ensure directory for each user
         user_id = message.from_user.id
         if user_id not in user_files:
             user_files[user_id] = []
-        
-        # Get the file info and download it
+
         file_info = bot.get_file(message.document.file_id)
         downloaded_file = bot.download_file(file_info.file_path)
-        
-        # Save the file with a unique name
         file_name = f"{message.document.file_name}"
         with open(file_name, 'wb') as new_file:
             new_file.write(downloaded_file)
-        
-        # Store file path in user's file list
-        user_files[user_id].append(file_name)
-        bot.reply_to(message, f"Added {file_name} to the list for merging, send /merge when you're done ✅.")
-    else:
-        bot.reply_to(message, "Please send only PDF files 💔")
 
-# Merge command handler
+        user_files[user_id].append(file_name)
+        bot.reply_to(message, f"Added {file_name} to the list for merging. Use /merge when ready.")
+    else:
+        bot.reply_to(message, "Please send only PDF files.")
+
 @bot.message_handler(commands=['merge'])
 def merge_pdfs(message):
     user_id = message.from_user.id
-    
-    # Check if there are files to merge
     if user_id not in user_files or len(user_files[user_id]) < 2:
-        bot.reply_to(message, "You need to send at least two PDF files 📕 before merging.")
+        bot.reply_to(message, "You need to send at least two PDF files before merging.")
         return
-    
-    # Create a PdfMerger object
+
     merger = PdfMerger()
     try:
-        # Append each PDF file for merging
         for pdf_file in user_files[user_id]:
             merger.append(pdf_file)
-        
-        # Output merged file
+
         merged_file_name = f"{user_id}_merged.pdf"
         with open(merged_file_name, "wb") as merged_file:
             merger.write(merged_file)
-        
-        # Send the merged PDF back to the user
+
         with open(merged_file_name, "rb") as merged_file:
             bot.send_document(message.chat.id, merged_file)
-        
-        bot.reply_to(message, "Here is your merged PDF 📕😎")
-        
-        # Clean up merged file
+
+        bot.reply_to(message, "*Here is your merged PDF*")
         os.remove(merged_file_name)
     finally:
-        # Cleanup each user's files after merging
         for pdf_file in user_files[user_id]:
             os.remove(pdf_file)
         user_files[user_id] = []
 
-# Clear command to reset files
 @bot.message_handler(commands=['clear'])
 def clear_files(message):
     user_id = message.from_user.id
@@ -195,7 +123,8 @@ def clear_files(message):
         for pdf_file in user_files[user_id]:
             os.remove(pdf_file)
         user_files[user_id] = []
-    bot.reply_to(message, "Your file list has been cleared 🧹.")
+    bot.reply_to(message, "Your file list has been cleared.")
+
 
 #Font styling 
 @Client.on_message(filters.private & filters.command(["font"]))
@@ -369,5 +298,8 @@ async def style(c, m):
     except Exception as e:
         print(e)
 
-# Run the bot
-bot.polling()
+# Run bot and webhook
+if __name__ == "__main__":
+    bot.remove_webhook()
+    bot.set_webhook(url=WEBHOOK_URL)
+    bot.polling()
