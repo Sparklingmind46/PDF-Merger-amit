@@ -52,7 +52,7 @@ def callback_handler(call):
         markup = InlineKeyboardMarkup()
         markup.add(InlineKeyboardButton("Back", callback_data="back"))
     elif call.data == "about":
-        new_image_url = 'https://envs.sh/jxZ.jpg''
+        new_image_url = 'https://envs.sh/jxZ.jpg'
         new_caption = ABOUT_TXT.format(bot.username, bot.username)
         markup = InlineKeyboardMarkup().add(InlineKeyboardButton("Back", callback_data="back"))
     elif call.data == "back":
