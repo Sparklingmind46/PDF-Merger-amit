@@ -4,15 +4,12 @@ from telebot import types
 from PyPDF2 import PdfMerger
 import time 
 
-
 # Initialize bot with token from environment variable
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 bot = telebot.TeleBot(BOT_TOKEN)
 
-
 # Temporary storage for user files (dictionary to store file paths by user)
 user_files = {}
-
 
 # Start command handler
 @bot.message_handler(commands=['start'])
@@ -23,7 +20,6 @@ def send_welcome(message):
     sticker_message_id = sent_sticker.message_id
     time.sleep(3)
     bot.delete_message(message.chat.id, sticker_message_id)
-    
     
     # Now send the image with a caption
     image_url = 'https://envs.sh/AfO.jpg'
