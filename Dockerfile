@@ -20,7 +20,7 @@ EXPOSE 8080
 
 # Set the Koyeb health check file if applicable
 # (Update "healthcheck.py" with the correct file name if different)
-COPY healthcheck.py /app/healthcheck.py
+COPY healthcheck.py /app/health_check.py
 
 # Define the health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s \
