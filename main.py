@@ -1,9 +1,13 @@
-import os
+byimport os
 import telebot
 from telebot import types
 from PyPDF2 import PdfMerger
 import time 
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto
+import pyrogram
+from pyrogram import Client, filters
+from pyrogram.errors import UsernameNotOccupied
+
 
 # Initialize bot with token from environment variable
 BOT_TOKEN = os.getenv('BOT_TOKEN')
@@ -169,7 +173,7 @@ def merge_pdfs_with_filename(user_id, chat_id, filename):
         # After sending the file, delete the progress message
         bot.delete_message(chat_id, progress_message.message_id)
 
-        bot.send_message(chat_id, f"*Here is your merged PDF !*",parse_mode="Markdown")
+        bot.send_message(chat_id, f"*Here is your merged PDF!📕😎*",parse_mode="Markdown")
 
     finally:
         # Clean up each user's files after merging
@@ -222,6 +226,29 @@ def clear_files(message):
             os.remove(pdf_file)
         user_files[user_id] = []
     bot.reply_to(message, "Your file list has been cleared.")
+
+# restricted saver from public 
+@bot.on_message(filters.text)
+def save(client: pyrogram.client.Client, message: pyrogram.types.messages_and_media.message.Message):
+    print(message.text)
+
+    if "https://t.me/" in message.text:
+        datas = message.text.split("/")
+        temp = datas[-1].replace("?single", "").split("-")
+        fromID = int(temp[0].strip())
+        toID = int(temp[1].strip()) if len(temp) > 1 else fromID
+
+        username = datas[3]
+        
+        for msgid in range(fromID, toID + 1):
+            try:
+                msg = bot.get_messages(username, msgid)
+                bot.copy_message(message.chat.id, msg.chat.id, msg.id, reply_to_message_id=message.id)
+            except (UsernameNotOccupied, Exception) as e:
+                error_message = f"**Error⚠️**: {str(e)}" if isinstance(e, Exception) else "**The username is not occupied by anyone 🚫**"
+                bot.send_message(message.chat.id, error_message, reply_to_message_id=message.id)
+
+            time.sleep(3)  # wait time
 
 bot.delete_webhook()
 # Run the bot
