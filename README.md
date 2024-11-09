@@ -1,3 +1,4 @@
+## Owner : @Ur_Amit_01 : )
 # PDF Genie - Telegram Bot
 
 PDF Genie is your personal assistant for merging PDF files effortlessly. With a simple interface and powerful features, PDF Genie helps you combine multiple PDFs into a single document in just a few easy steps.
@@ -38,9 +39,6 @@ Broadcast Feature: Send announcements to all users with ease.
 /start: Start a conversation with PDF Genie.
 /help: Get a list of available commands.
 /merge: Merge the uploaded PDFs into one document.
-
-
-## Owner : @Ur_Amit_01 : )
 
 ## License
 
