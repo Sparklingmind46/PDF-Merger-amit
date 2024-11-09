@@ -30,11 +30,11 @@ def send_welcome(message):
     # First row: Help and About buttons
     markup.row_width = 2
     markup.add(
-        InlineKeyboardButton("Help 🕵️", callback_data="help"),
-        InlineKeyboardButton("About 📄", callback_data="about")
+        InlineKeyboardButton("«ʜᴇʟᴘ» 🕵️", callback_data="help"),
+        InlineKeyboardButton("«ᴀʙᴏᴜᴛ» 📄", callback_data="about")
     )
     # Second row: Developer button
-    markup.add(InlineKeyboardButton("Developer ☘", url="https://t.me/Ur_amit_01"))
+    markup.add(InlineKeyboardButton("•Dᴇᴠᴇʟᴏᴘᴇʀ• ☘", url="https://t.me/Ur_amit_01"))
     
     # Send the photo with the caption and inline keyboard
     image_url = 'https://envs.sh/jxZ.jpg'
@@ -312,6 +312,6 @@ def save(client: Client, message):
             
             time.sleep(3)  # Wait time to avoid hitting rate limits
 
-bot.delete_webhook()
+
 # Run the bot
 bot.polling()
