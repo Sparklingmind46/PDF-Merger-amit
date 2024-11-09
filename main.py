@@ -3,7 +3,7 @@ import telebot
 from telebot import types
 from PyPDF2 import PdfMerger
 import time 
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto
 
 # Initialize bot with token from environment variable
 BOT_TOKEN = os.getenv('BOT_TOKEN')
@@ -22,27 +22,72 @@ def send_welcome(message):
     time.sleep(3)
     bot.delete_message(message.chat.id, sticker_message_id)
     
-    # Now send the image with a caption
-    image_url = 'https://envs.sh/AfO.jpg'
-    
     # Define the inline keyboard with buttons
     markup = InlineKeyboardMarkup()
     # First row: Help and About buttons
     markup.row_width = 2
     markup.add(
-        InlineKeyboardButton("Help", callback_data="help"),
-        InlineKeyboardButton("About", callback_data="about")
+        InlineKeyboardButton("Help 🕵️", callback_data="help"),
+        InlineKeyboardButton("About 📄", callback_data="about")
     )
     # Second row: Developer button
-    markup.add(InlineKeyboardButton("Developer", url="https://t.me/Ur_amit_01"))
+    markup.add(InlineKeyboardButton("Developer ☘", url="https://t.me/Ur_amit_01"))
     
     # Send the photo with the caption and inline keyboard
+    image_url = 'https://envs.sh/jxZ.jpg'
     bot.send_photo(
         message.chat.id, 
         image_url, 
-        caption="Welcome💓✨\n• I can merge PDFs (Max= 20MB per file).\n• Send PDF files 📕 to merge and use /merge when you're done.",
+        caption="•Hello there, Welcome💓✨\n• I can merge PDFs (Max= 20MB per file).\n• Send PDF files 📕 to merge and use /merge when you're done.",
         reply_markup=markup
     )
+
+@bot.callback_query_handler(func=lambda call: call.data in ["help", "about", "back"])
+def callback_handler(call):
+    # Define media and caption based on the button clicked
+    if call.data == "help":
+        new_image_url = 'https://envs.sh/jxZ.jpg'
+        new_caption = "Hᴇʀᴇ Is Tʜᴇ Hᴇʟᴘ Fᴏʀ Mʏ Cᴏᴍᴍᴀɴᴅs.:\n1. Send PDF files.\n2. Use /merge when you're ready to combine them.\n3. Max size = 20MB per file.\n\n• Note: My developer is constantly adding new features in my program , if you found any bug or error please report at @Ur_Amit_01"
+        # Add a "Back" button
+        markup = InlineKeyboardMarkup()
+        markup.add(InlineKeyboardButton("Back", callback_data="back"))
+    elif call.data == "about":
+        new_image_url = 'image_url = 'https://envs.sh/jxZ.jpg''
+        new_caption = ABOUT_TXT.format(bot.username, bot.username)
+        markup = InlineKeyboardMarkup().add(InlineKeyboardButton("Back", callback_data="back"))
+    elif call.data == "back":
+        # Go back to the start message
+        new_image_url = 'https://envs.sh/jxZ.jpg'
+        new_caption = "*Welcome💓✨\n• I can merge PDFs (Max= 20MB per file).\n• Send PDF files 📕 to merge and use /merge when you're done.*"
+        # Restore original keyboard with Help, About, and Developer buttons
+        markup = InlineKeyboardMarkup()
+        markup.row_width = 2
+        markup.add(
+            InlineKeyboardButton("Help 🕵️", callback_data="help"),
+            InlineKeyboardButton("About 📄", callback_data="about")
+        )
+        markup.add(InlineKeyboardButton("Developer ☘", url="https://t.me/Ur_Amit_01"))
+    
+    # Create media object with the new image and caption
+    media = InputMediaPhoto(media=new_image_url, caption=new_caption, parse_mode="HTML")
+    
+    # Edit the original message with the new image and caption
+    bot.edit_message_media(
+        media=media,
+        chat_id=call.message.chat.id,
+        message_id=call.message.message_id,
+        reply_markup=markup  # Updated inline keyboard
+    )
+
+ABOUT_TXT = """<b><blockquote>⍟───[ MY ᴅᴇᴛᴀɪʟꜱ ]───⍟</blockquote>
+    
+‣ ᴍʏ ɴᴀᴍᴇ : <a href=https://t.me/{}>{}</a>
+‣ ᴍʏ ʙᴇsᴛ ғʀɪᴇɴᴅ : <a href='tg://settings'>ᴛʜɪs ᴘᴇʀsᴏɴ</a> 
+‣ ᴅᴇᴠᴇʟᴏᴘᴇʀ : <a href='https://t.me/Ur_amit_01'>ꫝᴍɪᴛ ꢺɪɴɢʜ ⚝</a> 
+‣ ʟɪʙʀᴀʀʏ : <a href='https://docs.pyrogram.org/'>ᴘʏʀᴏɢʀᴀᴍ</a> 
+‣ ʟᴀɴɢᴜᴀɢᴇ : <a href='https://www.python.org/download/releases/3.0/'>ᴘʏᴛʜᴏɴ 3</a> 
+‣ ᴅᴀᴛᴀ ʙᴀsᴇ : <a href='https://www.mongodb.com/'>ᴍᴏɴɢᴏ ᴅʙ</a> 
+‣ ʙᴜɪʟᴅ sᴛᴀᴛᴜs : ᴠ2.7.1 [sᴛᴀʙʟᴇ]</b>"""
 
 # Help command handler
 @bot.message_handler(commands=['help'])
