@@ -53,7 +53,7 @@ def callback_handler(call):
         markup.add(InlineKeyboardButton("Back", callback_data="back"))
     elif call.data == "about":
     # Get the bot's username dynamically
-    bot_username = bot.username
+        bot_username = bot.username
         new_image_url = 'https://envs.sh/jxZ.jpg'
         new_caption = ABOUT_TXT.format(bot_username, bot_username)
         markup = InlineKeyboardMarkup().add(InlineKeyboardButton("Back", callback_data="back"))
