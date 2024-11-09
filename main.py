@@ -101,6 +101,6 @@ def clear_files(message):
         user_files[user_id] = []
     bot.reply_to(message, "Your file list has been cleared.")
 
-
+bot.delete_webhoook()
 # Run the bot
 bot.polling()
