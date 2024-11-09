@@ -3,6 +3,7 @@ import telebot
 from telebot import types
 from PyPDF2 import PdfMerger
 import time 
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 # Initialize bot with token from environment variable
 BOT_TOKEN = os.getenv('BOT_TOKEN')
@@ -23,12 +24,25 @@ def send_welcome(message):
     
     # Now send the image with a caption
     image_url = 'https://envs.sh/AfO.jpg'
+    
+    # Define the inline keyboard with buttons
+    markup = InlineKeyboardMarkup()
+    # First row: Help and About buttons
+    markup.row_width = 2
+    markup.add(
+        InlineKeyboardButton("Help", callback_data="help"),
+        InlineKeyboardButton("About", callback_data="about")
+    )
+    # Second row: Developer button
+    markup.add(InlineKeyboardButton("Developer", url="https://t.me/Ur_amit_01"))
+    
+    # Send the photo with the caption and inline keyboard
     bot.send_photo(
         message.chat.id, 
         image_url, 
-        caption="Welcome💓✨\n• I can merge PDFs (Max= 20MB per file).\n• Send PDF files 📕 to merge and use /merge when you're done."
+        caption="Welcome💓✨\n• I can merge PDFs (Max= 20MB per file).\n• Send PDF files 📕 to merge and use /merge when you're done.",
+        reply_markup=markup
     )
-
 
 # Help command handler
 @bot.message_handler(commands=['help'])
