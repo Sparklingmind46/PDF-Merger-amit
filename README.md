@@ -8,13 +8,13 @@ This bot is designed to make your life easier by automating the tedious task of 
 
 ## Usage
 
-1. Start a chat with the PDF Genie bot on Telegram.
+- 1. Start a chat with the PDF Genie bot on Telegram.
 
-2. Upload the PDF files you want to merge.
+- 2. Upload the PDF files you want to merge.
 
-3. PDF Genie will combine them into a single document and send it back to you.
+- 3. PDF Genie will combine them into a single document and send it back to you.
 
-4. Enjoy the merged file and keep using PDF Genie for your future PDF needs!
+- 4. Enjoy the merged file and keep using PDF Genie for your future PDF needs!
 
 ## Commands
 
