@@ -42,9 +42,9 @@ Broadcast Feature: Send announcements to all users with ease.
 /merge: Merge the uploaded PDFs into one document.
 
 
-## Credits
+## Owner
 
-A big thanks to Amit for his invaluable contributions to this project! Without his help, PDF Genie would not be what it is today.
+TG : @Ur_Amit_01 : )
 
 ## License
 
