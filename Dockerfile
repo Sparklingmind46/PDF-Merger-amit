@@ -9,22 +9,19 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 # Copy requirements file and install dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
 
-# Copy the rest of the application code
-COPY . .
-
-# Expose the port for the application if needed
-EXPOSE 8080
-
-# Set the Koyeb health check file if applicable
-# (Update "healthcheck.py" with the correct file name if different)
+# Copy the main application files
+COPY main.py /app/main.py
 COPY health_check.py /app/health_check.py
+
+# Expose the port for the health check server
+EXPOSE 8000
 
 # Define the health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s \
-    CMD python healthcheck.py || exit 1
+    CMD curl -f http://localhost:8000 || exit 1
 
-# Command to run the bot
-CMD ["python", "main.py"]
+# Command to run both the bot and health check server
+CMD python health_check.py & python main.py
