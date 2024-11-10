@@ -20,7 +20,7 @@ user_files = {}
 
 ABOUT_TXT = """<b><blockquote>⍟───[ MY ᴅᴇᴛᴀɪʟꜱ ]───⍟</blockquote>
 ‣ ᴍʏ ɴᴀᴍᴇ : <a href='https://t.me/PDF_Genie_Robot'>PDF Genie</a>
-‣ ᴍʏ ʙᴇsᴛ ғʀɪᴇɴᴅ : <a href='tg://settings'>ᴛʜɪs ᴘᴇʀsᴏɴ</a> 
+‣ ᴍʏ ʙᴇsᴛ ғʀɪɴᴇɴᴅ : <a href='tg://settings'>ᴛʜɪs ᴘᴇʀsᴏɴ</a> 
 ‣ ᴅᴇᴠᴇʟᴏᴘᴇʀ : <a href='https://t.me/Ur_amit_01'>ꫝᴍɪᴛ ꢺɪɴɢʜ ⚝</a> 
 ‣ ʟɪʙʀᴀʀʏ : <a href='https://docs.pyrogram.org/'>ᴘʏʀᴏɢʀᴀᴍ</a> 
 ‣ ʟᴀɴɢᴜᴀɢᴇ : <a href='https://www.python.org/download/releases/3.0/'>ᴘʏᴛʜᴏɴ 3</a> 
@@ -32,7 +32,7 @@ async def start(client, message):
     sticker_id = 'CAACAgUAAxkBAAECEpdnLcqQbmvQfCMf5E3rBK2dkgzqiAACJBMAAts8yFf1hVr67KQJnh4E'
     sent_sticker = await client.send_sticker(message.chat.id, sticker_id)
     if sent_sticker and hasattr(sent_sticker, "message_id"):
-        await time.sleep(3)
+        await asyncio.sleep(3)
         await client.delete_messages(message.chat.id, sent_sticker.message_id)
 
     # Inline keyboard with buttons
@@ -50,11 +50,12 @@ async def start(client, message):
         reply_markup=markup
     )
 
+# Callback handler
 @app.on_callback_query(filters.regex("^(help|about|back)$"))
 async def callback_handler(client, callback_query):
     data = callback_query.data
     chat_id = callback_query.message.chat.id
-    message_id = callback_query.message.message_id
+    message_id = callback_query.message.id  # Fixed this line
 
     if data == "help":
         new_image_url = 'https://envs.sh/jxZ.jpg'
@@ -92,20 +93,20 @@ async def merge_pdfs(client, message):
         return
 
     await message.reply("Please provide a filename for the merged PDF (without the .pdf extension).")
-    client.listen("filename_input")
 
 # Handler for receiving filename
+@app.on_message(filters.text)
 async def handle_filename_input(client, message):
-    user_id = message.from_user.id
-    filename = message.text.strip()
+    if message.text:
+        user_id = message.from_user.id
+        filename = message.text.strip()
 
-    if filename:
-        if not filename.lower().endswith(".pdf"):
-            filename += ".pdf"
-        await merge_pdfs_with_filename(client, user_id, message.chat.id, filename)
-    else:
-        await message.reply("Please provide a valid filename.")
-        client.listen("filename_input")
+        if filename:
+            if not filename.lower().endswith(".pdf"):
+                filename += ".pdf"
+            await merge_pdfs_with_filename(client, user_id, message.chat.id, filename)
+        else:
+            await message.reply("Please provide a valid filename.")
 
 # Function to merge PDFs
 async def merge_pdfs_with_filename(client, user_id, chat_id, filename):
@@ -137,7 +138,7 @@ async def merge_pdfs_with_filename(client, user_id, chat_id, filename):
         user_files[user_id] = []
 
 # Handler for received documents (PDFs)
-MAX_FILE_SIZE = 20 * 1024 * 1024
+MAX_FILE_SIZE = 20 * 1024 * 1024  # 20 MB
 
 @app.on_message(filters.document)
 async def handle_document(client, message):
@@ -171,7 +172,7 @@ async def clear_files(client, message):
         for pdf_file in user_files[user_id]:
             os.remove(pdf_file)
         user_files[user_id] = []
-    await message.reply("Your file list has been cleared.")
+    await message.reply("Your file list has been cleared. 🧹🗑️")
 
 # Run the bot
 app.run()
