@@ -1,6 +1,4 @@
-# Pyrogram and dependencies
 pyrogram==2.0.106
 tgcrypto==1.2.2  # Required for faster, encrypted media handling
-
-# PDF handling and general dependencies
+Flask
 PyPDF2==3.0.1    # For merging PDFs
