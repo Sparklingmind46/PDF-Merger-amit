@@ -1,36 +1,23 @@
 import os
+import asyncio
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto
 from PyPDF2 import PdfMerger
-import time
-from pyrogram import Client
-
-import os
-from pyrogram import Client
 
 # Fetch the API credentials from environment variables
 api_id = os.getenv("API_ID")
 api_hash = os.getenv("API_HASH")
 bot_token = os.getenv("BOT_TOKEN")
 
-# Debugging: Print the credentials
-print(f"API_ID: {api_id}")
-print(f"API_HASH: {api_hash}")
-
-# Ensure all required credentials are provided
 if not api_id or not api_hash or not bot_token:
     raise ValueError("API ID, API Hash, and Bot Token are required.")
 
 # Initialize the Pyrogram Client with API credentials
-app = Client("my_bot", api_id=api_id, api_hash=api_hash)
+app = Client("pdf_genie", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
 
-# Initialize the bot with the bot token
-app = Client("pdf_genie", bot_token=bot_token)
-
-# Temporary storage for user files (dictionary to store file paths by user)
+# Temporary storage for user files
 user_files = {}
 
-# About text for the "About" section
 ABOUT_TXT = """<b><blockquote>⍟───[ MY ᴅᴇᴛᴀɪʟꜱ ]───⍟</blockquote>
 ‣ ᴍʏ ɴᴀᴍᴇ : <a href='https://t.me/PDF_Genie_Robot'>PDF Genie</a>
 ‣ ᴍʏ ʙᴇsᴛ ғʀɪᴇɴᴅ : <a href='tg://settings'>ᴛʜɪs ᴘᴇʀsᴏɴ</a> 
@@ -40,19 +27,17 @@ ABOUT_TXT = """<b><blockquote>⍟───[ MY ᴅᴇᴛᴀɪʟꜱ ]───⍟
 ‣ ᴅᴀᴛᴀ ʙᴀsᴇ : <a href='https://www.mongodb.com/'>ᴍᴏɴɢᴏ ᴅʙ</a> 
 ‣ ʙᴜɪʟᴅ sᴛᴀᴛᴜs : ᴠ2.7.1 [sᴛᴀʙʟᴇ]</b>"""
 
-# Start command handler
 @app.on_message(filters.command("start"))
 async def start(client, message):
     sticker_id = 'CAACAgUAAxkBAAECEpdnLcqQbmvQfCMf5E3rBK2dkgzqiAACJBMAAts8yFf1hVr67KQJnh4E'
     sent_sticker = await client.send_sticker(message.chat.id, sticker_id)
-    await time.sleep(3)
+    await asyncio.sleep(3)
     await client.delete_messages(message.chat.id, sent_sticker.message_id)
 
-    # Inline keyboard with buttons
     markup = InlineKeyboardMarkup([
-        [InlineKeyboardButton("«ʜᴇʟᴘ» 🕵️", callback_data="help"),
-         InlineKeyboardButton("«ᴀʙᴏᴜᴛ» 📄", callback_data="about")],
-        [InlineKeyboardButton("•Dᴇᴠᴇʟᴏᴘᴇʀ• ☘", url="https://t.me/Ur_amit_01")]
+        [InlineKeyboardButton("Help 🕵️", callback_data="help"),
+         InlineKeyboardButton("About 📄", callback_data="about")],
+        [InlineKeyboardButton("Developer ☘", url="https://t.me/Ur_amit_01")]
     ])
 
     image_url = 'https://envs.sh/jxZ.jpg'
@@ -63,7 +48,6 @@ async def start(client, message):
         reply_markup=markup
     )
 
-# Callback query handler for Help and About
 @app.on_callback_query(filters.regex("^(help|about|back)$"))
 async def callback_handler(client, callback_query):
     data = callback_query.data
@@ -72,7 +56,7 @@ async def callback_handler(client, callback_query):
 
     if data == "help":
         new_image_url = 'https://envs.sh/jxZ.jpg'
-        new_caption = """Hᴇʀᴇ Is Tʜᴇ Hᴇʟᴘ Fᴏʀ Mʏ Cᴏᴍᴍᴀɴᴅs.:\n1. Send PDF files.\n2. Use /merge when you're ready to combine them.\n3. Max size = 20MB per file."""
+        new_caption = """Here is the Help for my commands:\n1. Send PDF files.\n2. Use /merge when you're ready to combine them.\n3. Max size = 20MB per file."""
         markup = InlineKeyboardMarkup([[InlineKeyboardButton("Back", callback_data="back")]])
 
     elif data == "about":
@@ -82,14 +66,13 @@ async def callback_handler(client, callback_query):
 
     elif data == "back":
         new_image_url = 'https://envs.sh/jxZ.jpg'
-        new_caption = "*Welcome💓✨\n• I can merge PDFs (Max= 20MB per file).\n• Send PDF files 📕 to merge and use /merge when you're done.*"
+        new_caption = "Welcome💓✨\n• I can merge PDFs (Max= 20MB per file).\n• Send PDF files 📕 to merge and use /merge when you're done."
         markup = InlineKeyboardMarkup([
             [InlineKeyboardButton("Help 🕵️", callback_data="help"),
              InlineKeyboardButton("About 📄", callback_data="about")],
             [InlineKeyboardButton("Developer ☘", url="https://t.me/Ur_amit_01")]
         ])
 
-    # Edit the original message with the updated image, caption, and keyboard
     await client.edit_message_media(
         chat_id=chat_id,
         message_id=message_id,
@@ -133,7 +116,7 @@ async def merge_pdfs_with_filename(client, user_id, chat_id, filename):
             merger.append(pdf_file)
             progress_text = f"Merging PDFs: {int((i + 1) / total_files * 100)}%"
             await progress_message.edit_text(progress_text)
-            await time.sleep(1)
+            await asyncio.sleep(1)
 
         with open(filename, "wb") as merged_file:
             merger.write(merged_file)
@@ -144,7 +127,7 @@ async def merge_pdfs_with_filename(client, user_id, chat_id, filename):
             await client.send_document(chat_id, merged_file)
 
         await client.delete_messages(chat_id, progress_message.message_id)
-        await client.send_message(chat_id, f"*Here is your merged PDF!📕😎*", parse_mode="markdown")
+        await client.send_message(chat_id, "Here is your merged PDF!📕😎", parse_mode="markdown")
 
     finally:
         for pdf_file in user_files[user_id]:
