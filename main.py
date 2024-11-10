@@ -31,13 +31,15 @@ ABOUT_TXT = """<b><blockquote>⍟───[ MY ᴅᴇᴛᴀɪʟꜱ ]───⍟
 async def start(client, message):
     sticker_id = 'CAACAgUAAxkBAAECEpdnLcqQbmvQfCMf5E3rBK2dkgzqiAACJBMAAts8yFf1hVr67KQJnh4E'
     sent_sticker = await client.send_sticker(message.chat.id, sticker_id)
-    await asyncio.sleep(3)
-    await client.delete_messages(message.chat.id, sent_sticker.message_id)
+    if sent_sticker and hasattr(sent_sticker, "message_id"):
+        await time.sleep(3)
+        await client.delete_messages(message.chat.id, sent_sticker.message_id)
 
+    # Inline keyboard with buttons
     markup = InlineKeyboardMarkup([
-        [InlineKeyboardButton("Help 🕵️", callback_data="help"),
-         InlineKeyboardButton("About 📄", callback_data="about")],
-        [InlineKeyboardButton("Developer ☘", url="https://t.me/Ur_amit_01")]
+        [InlineKeyboardButton("«ʜᴇʟᴘ» 🕵️", callback_data="help"),
+         InlineKeyboardButton("«ᴀʙᴏᴜᴛ» 📄", callback_data="about")],
+        [InlineKeyboardButton("•Dᴇᴠᴇʟᴏᴘᴇʀ• ☘", url="https://t.me/Ur_amit_01")]
     ])
 
     image_url = 'https://envs.sh/jxZ.jpg'
