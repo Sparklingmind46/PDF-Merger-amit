@@ -139,6 +139,11 @@ MAX_FILE_SIZE = 20 * 1024 * 1024
 
 @app.on_message(filters.document)
 async def handle_document(client, message):
+    # Check if the message has `from_user` data to ensure it is from a user
+    if not message.from_user:
+        await message.reply("Sorry, I can't process this message.")
+        return
+
     if message.document.mime_type == "application/pdf":
         file_size = message.document.file_size
 
