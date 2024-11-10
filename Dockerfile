@@ -1,27 +1,23 @@
-# Use an official Python runtime as a parent image
+# Use an official Python runtime as the base image
 FROM python:3.9-slim
 
-# Set environment variables to avoid writing pyc files and buffering stdout/stderr
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-# Set up the working directory in the container
+# Set the working directory in the container
 WORKDIR /app
 
-# Copy requirements file and install dependencies
-COPY requirements.txt /app/requirements.txt
-RUN pip install --no-cache-dir -r /app/requirements.txt
+# Copy the requirements file to the container
+COPY requirements.txt .
 
-# Copy the main application files
-COPY main.py /app/main.py
-COPY health_check.py /app/health_check.py
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose the port for the health check server
+# Copy the rest of the bot files and the health_check.py to the container
+COPY . .
+
+# Set environment variable for unbuffered logging
+ENV PYTHONUNBUFFERED=1
+
+# Expose the port for Flask health check
 EXPOSE 8000
 
-# Define the health check
-HEALTHCHECK --interval=30s --timeout=5s --start-period=5s \
-    CMD curl -f http://localhost:8000 || exit 1
-
-# Command to run both the bot and health check server
-CMD python health_check.py & python main.py
+# Command to run both Flask and the bot (using a script or supervisor)
+CMD ["sh", "-c", "python health_check.py & python main.py"]
