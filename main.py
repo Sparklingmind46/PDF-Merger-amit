@@ -55,7 +55,7 @@ async def start(client, message):
 async def callback_handler(client, callback_query):
     data = callback_query.data
     chat_id = callback_query.message.chat.id
-    message_id = callback_query.message.id  # Fixed this line
+    message_id = callback_query.message.id
 
     if data == "help":
         new_image_url = 'https://envs.sh/jxZ.jpg'
@@ -133,8 +133,10 @@ async def merge_pdfs_with_filename(client, user_id, chat_id, filename):
         await client.send_message(chat_id, "Here is your merged PDF!📕😎", parse_mode="markdown")
 
     finally:
+        # Ensure the files are removed after merging
         for pdf_file in user_files[user_id]:
-            os.remove(pdf_file)
+            if os.path.exists(pdf_file):  # Check if the file exists before deleting
+                os.remove(pdf_file)
         user_files[user_id] = []
 
 # Handler for received documents (PDFs)
@@ -170,7 +172,8 @@ async def clear_files(client, message):
     user_id = message.from_user.id
     if user_id in user_files:
         for pdf_file in user_files[user_id]:
-            os.remove(pdf_file)
+            if os.path.exists(pdf_file):  # Check if the file exists before deleting
+                os.remove(pdf_file)
         user_files[user_id] = []
     await message.reply("Your file list has been cleared. 🧹🗑️")
 
